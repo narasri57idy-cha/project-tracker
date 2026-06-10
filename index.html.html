@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ระบบติดตามโครงการ | สำนักงานศึกษาธิการจังหวัด</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap');
+  :root {
+    --navy:#1a3a5c; --navy-light:#2a5282; --gold:#c9a84c; --gold-light:#f0d080;
+    --bg:#f5f6fa; --white:#fff; --gray:#6b7280; --gray-light:#e5e7eb;
+    --success:#059669; --warning:#d97706; --danger:#dc2626;
+    --text:#1f2937; --text-light:#6b7280;
+    --sidebar-w:240px; --radius:10px; --shadow:0 2px 8px rgba(0,0,0,0.08);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Sarabun',sans-serif;background:var(--bg);color:var(--text);font-size:15px;line-height:1.6}
+  .app{display:flex;min-height:100vh}
+  .sidebar{width:var(--sidebar-w);background:var(--navy);display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;z-index:100}
+  .sidebar-logo{padding:24px 20px 20px;border-bottom:1px solid rgba(255,255,255,0.1)}
+  .logo-title{font-size:14px;font-weight:700;color:var(--gold-light);line-height:1.4}
+  .logo-sub{font-size:11px;color:rgba(255,255,255,0.5);margin-top:4px}
+  .sidebar-nav{padding:12px 0;flex:1;overflow-y:auto}
+  .nav-item{display:flex;align-items:center;gap:10px;padding:10px 20px;color:rgba(255,255,255,0.7);cursor:pointer;transition:all .15s;font-size:14px;border-left:3px solid transparent}
+  .nav-item:hover{background:rgba(255,255,255,0.06);color:#fff}
+  .nav-item.active{background:rgba(201,168,76,0.15);color:var(--gold-light);border-left-color:var(--gold)}
+  .sidebar-user{padding:16px 20px;border-top:1px solid rgba(255,255,255,0.1);display:flex;align-items:center;gap:10px}
+  .user-avatar{width:34px;height:34px;border-radius:50%;background:var(--gold);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:var(--navy);flex-shrink:0}
+  .user-name{font-size:13px;color:#fff;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .user-role{font-size:11px;color:rgba(255,255,255,0.45)}
+  .main{margin-left:var(--sidebar-w);flex:1;display:flex;flex-direction:column}
+  .topbar{background:var(--white);border-bottom:1px solid var(--gray-light);padding:0 28px;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
+  .page-title{font-size:17px;font-weight:600;color:var(--navy)}
+  .content{padding:28px;flex:1}
+  .card{background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow);padding:24px;margin-bottom:20px}
+  .card-title{font-size:15px;font-weight:600;color:var(--navy);margin-bottom:16px}
+  .stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:20px}
+  .stat-card{background:var(--white);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow);border-top:3px solid var(--navy)}
+  .stat-card.gold{border-top-color:var(--gold)}.stat-card.green{border-top-color:var(--success)}.stat-card.orange{border-top-color:var(--warning)}
+  .stat-label{font-size:12px;color:var(--text-light);margin-bottom:6px}
+  .stat-value{font-size:28px;font-weight:700;color:var(--navy);line-height:1}
+  .stat-sub{font-size:12px;color:var(--text-light);margin-top:4px}
+  .table-wrap{overflow-x:auto}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  thead th{background:#f8fafc;color:var(--navy);font-weight:600;padding:10px 14px;text-align:left;border-bottom:2px solid var(--gray-light);white-space:nowrap}
+  tbody tr{border-bottom:1px solid var(--gray-light);transition:background .1s}
+  tbody tr:hover{background:#f8fafc}
+  tbody td{padding:10px 14px;vertical-align:middle}
+  .q-dot{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:6px;font-size:11px;font-weight:600}
+  .q-done{background:#d1fae5;color:#065f46}.q-pending{background:#f3f4f6;color:#9ca3af}
+  .form-section{border:1px solid var(--gray-light);border-radius:var(--radius);margin-bottom:20px;overflow:hidden}
+  .form-section-header{background:var(--navy);color:#fff;padding:12px 20px;font-size:14px;font-weight:600}
+  .form-body{padding:20px}
+  .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .form-grid.full{grid-template-columns:1fr}
+  .form-group{display:flex;flex-direction:column;gap:6px}
+  .form-label{font-size:13px;font-weight:500;color:var(--text)}
+  .req{color:var(--danger);margin-left:2px}
+  .form-control{padding:9px 12px;border:1.5px solid var(--gray-light);border-radius:7px;font-family:'Sarabun',sans-serif;font-size:14px;color:var(--text);background:#fff;transition:border-color .15s;outline:none}
+  .form-control:focus{border-color:var(--navy-light)}
+  textarea.form-control{resize:vertical;min-height:80px}
+  .form-hint{font-size:12px;color:var(--text-light)}
+  .btn{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border-radius:7px;font-family:'Sarabun',sans-serif;font-size:14px;font-weight:500;cursor:pointer;border:none;transition:all .15s}
+  .btn-primary{background:var(--navy);color:#fff}.btn-primary:hover{background:var(--navy-light)}
+  .btn-gold{background:var(--gold);color:var(--navy)}.btn-gold:hover{background:var(--gold-light)}
+  .btn-outline{background:transparent;color:var(--navy);border:1.5px solid var(--gray-light)}.btn-outline:hover{border-color:var(--navy)}
+  .btn-sm{padding:5px 12px;font-size:13px}
+  .btn-row{display:flex;gap:10px;justify-content:flex-end;margin-top:20px}
+  .view{display:none}.view.active{display:block}
+  .badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:500}
+  .badge-navy{background:#dbeafe;color:#1e40af}
+  /* LOGIN */
+  .login-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--navy) 0%,#0f2744 60%,#1a3a5c 100%)}
+  .login-box{background:#fff;border-radius:16px;padding:44px 40px;width:400px;box-shadow:0 20px 60px rgba(0,0,0,0.3)}
+  .login-logo{text-align:center;margin-bottom:28px}
+  .login-logo .icon{font-size:48px;margin-bottom:10px}
+  .login-logo h1{font-size:20px;font-weight:700;color:var(--navy);line-height:1.3}
+  .login-logo p{font-size:13px;color:var(--text-light);margin-top:4px}
+  .login-label{font-size:13px;font-weight:500;color:var(--text);margin-bottom:12px;display:block}
+  .role-options{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px}
+  .role-btn{padding:10px 6px;border:2px solid var(--gray-light);border-radius:8px;text-align:center;cursor:pointer;transition:all .15s;font-size:12px;color:var(--text-light)}
+  .role-btn .role-icon{font-size:22px;display:block;margin-bottom:4px}
+  .role-btn.selected{border-color:var(--navy);background:#eff6ff;color:var(--navy);font-weight:600}
+  .login-input{width:100%;margin-bottom:12px}
+  .login-btn{width:100%;padding:12px;background:var(--navy);color:#fff;border:none;border-radius:8px;font-family:'Sarabun',sans-serif;font-size:15px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:background .15s}
+  .login-btn:hover{background:var(--navy-light)}
+  .login-note{font-size:12px;color:var(--text-light);text-align:center;margin-top:14px}
+  /* LOADING */
+  .loading{display:none;position:fixed;inset:0;background:rgba(255,255,255,0.8);z-index:999;align-items:center;justify-content:center;flex-direction:column;gap:12px}
+  .loading.show{display:flex}
+  .spinner{width:40px;height:40px;border:4px solid var(--gray-light);border-top-color:var(--navy);border-radius:50%;animation:spin 0.8s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .notify{position:fixed;top:20px;right:20px;background:var(--navy);color:#fff;padding:12px 20px;border-radius:8px;font-size:14px;box-shadow:0 4px 20px rgba(0,0,0,0.2);z-index:9999;transform:translateX(120%);transition:transform .3s}
+  .notify.show{transform:translateX(0)}.notify.success{background:var(--success)}.notify.error{background:var(--danger)}
+  .empty-state{text-align:center;padding:48px 20px;color:var(--text-light)}
+  .empty-icon{font-size:40px;margin-bottom:12px}
+  /* SETUP BOX */
+  .setup-box{background:#fffbeb;border:2px solid #fcd34d;border-radius:var(--radius);padding:20px;margin-bottom:20px}
+  .setup-title{font-weight:700;color:#92400e;margin-bottom:8px;font-size:15px}
+  .setup-box p{font-size:13px;color:#78350f;line-height:1.7}
+  /* USER TABLE */
+  .user-role-badge{display:inline-block;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600}
+  .role-officer{background:#dbeafe;color:#1e40af}
+  .role-admin{background:#d1fae5;color:#065f46}
+  .role-superadmin{background:#fce7f3;color:#9d174d}
+</style>
+</head>
+<body>
+
+<!-- ▸ แก้ไข URL นี้หลังจาก Deploy Apps Script แล้ว ◂ -->
+<script>
+var SCRIPT_URL = 'YOUR_APPS_SCRIPT_WEB_APP_URL_HERE';
+// ตัวอย่าง: 'https://script.google.com/macros/s/AKfycb.../exec'
+</script>
+
+<!-- LOADING -->
+<div class="loading" id="loading">
+  <div class="spinner"></div>
+  <div style="color:var(--navy);font-size:14px">กำลังโหลดข้อมูล...</div>
+</div>
+
+<!-- NOTIFY -->
+<div class="notify" id="notify"></div>
+
+<!-- LOGIN -->
+<div id="loginScreen" class="login-screen">
+  <div class="login-box">
+    <div class="login-logo">
+      <div class="icon">🏫</div>
+      <h1>ระบบติดตามโครงการ<br>สำนักงานศึกษาธิการจังหวัด</h1>
+      <p>ปีงบประมาณ พ.ศ. 2569</p>
+    </div>
+    <span class="login-label">Gmail ของคุณ</span>
+    <input class="form-control login-input" id="loginEmail" type="email" placeholder="yourname@gmail.com">
+    <span class="login-label">ชื่อ-สกุล</span>
+    <input class="form-control login-input" id="loginName" placeholder="เช่น นางสาวสมใจ ใจดี">
+    <span class="login-label" style="margin-top:4px">เข้าสู่ระบบในฐานะ (ครั้งแรก)</span>
+    <div class="role-options">
+      <div class="role-btn selected" onclick="selectRole('officer')" id="role-officer"><span class="role-icon">👤</span>ผู้รับผิดชอบ</div>
+      <div class="role-btn" onclick="selectRole('admin')" id="role-admin"><span class="role-icon">👔</span>ผู้บริหาร</div>
+      <div class="role-btn" onclick="selectRole('superadmin')" id="role-superadmin"><span class="role-icon">⚙️</span>ผู้ดูแลระบบ</div>
+    </div>
+    <button class="login-btn" onclick="doLogin()">🔑 เข้าสู่ระบบ</button>
+    <p class="login-note">ระบบนี้เชื่อมกับ Google Sheets<br>ข้อมูลจะถูกบันทึกส่วนกลางทันที</p>
+  </div>
+</div>
+
+<!-- APP -->
+<div class="app" id="appShell" style="display:none">
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-title">🏫 ระบบติดตามโครงการ</div>
+      <div class="logo-sub">สำนักงานศึกษาธิการจังหวัด</div>
+    </div>
+    <nav class="sidebar-nav" id="sidebarNav"></nav>
+    <div class="sidebar-user">
+      <div class="user-avatar" id="userAvatar">ก</div>
+      <div>
+        <div class="user-name" id="userName">-</div>
+        <div class="user-role" id="userRoleLabel">-</div>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <div class="page-title" id="pageTitle">Dashboard</div>
+      <div style="display:flex;align-items:center;gap:12px">
+        <span class="badge badge-navy">ปีงบ 2569</span>
+        <button class="btn btn-outline btn-sm" onclick="doLogout()">ออกจากระบบ</button>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- DASHBOARD -->
+      <div class="view active" id="view-dashboard">
+        <div id="setupWarning" class="setup-box" style="display:none">
+          <div class="setup-title">⚠️ ยังไม่ได้เชื่อม Google Sheets</div>
+          <p>ระบบกำลังทำงานในโหมดทดสอบ ข้อมูลจะไม่ถูกบันทึกจริง<br>
+          กรุณาไปที่เมนู <strong>ตั้งค่าระบบ</strong> และใส่ URL ของ Apps Script Web App</p>
+        </div>
+        <div class="stat-grid">
+          <div class="stat-card"><div class="stat-label">โครงการทั้งหมด</div><div class="stat-value" id="statTotal">-</div><div class="stat-sub">ปีงบประมาณ 2569</div></div>
+          <div class="stat-card green"><div class="stat-label">รายงานแล้วไตรมาสนี้</div><div class="stat-value" id="statDone">-</div><div class="stat-sub" id="statQuarterLabel">ไตรมาสปัจจุบัน</div></div>
+          <div class="stat-card orange"><div class="stat-label">รอการรายงาน</div><div class="stat-value" id="statPending">-</div><div class="stat-sub">ไตรมาสปัจจุบัน</div></div>
+          <div class="stat-card gold"><div class="stat-label">งบประมาณรวม (บาท)</div><div class="stat-value" id="statBudget">-</div><div class="stat-sub">ทุกโครงการ</div></div>
+        </div>
+        <div class="card">
+          <div class="card-title">📋 สถานะการรายงานทุกโครงการ</div>
+          <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap">
+            <input class="form-control" style="width:260px;padding:7px 12px" id="searchInput" placeholder="🔍 ค้นหาชื่อโครงการ..." oninput="filterTable()">
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>#</th><th>ชื่อโครงการ</th><th>ผู้รับผิดชอบ</th><th>งบประมาณ</th><th style="text-align:center">ไตรมาส 1</th><th style="text-align:center">ไตรมาส 2</th><th style="text-align:center">ไตรมาส 3</th><th style="text-align:center">ไตรมาส 4</th><th></th></tr></thead>
+              <tbody id="projectTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- FORM: โครงการ -->
+      <div class="view" id="view-project-form">
+        <div class="card" style="max-width:800px">
+          <div class="card-title">📋 กรอกข้อมูลโครงการใหม่</div>
+          <div class="form-section">
+            <div class="form-section-header">👤 ส่วนที่ 1: ข้อมูลผู้รับผิดชอบ</div>
+            <div class="form-body">
+              <div class="form-grid">
+                <div class="form-group"><label class="form-label">ชื่อ-สกุล <span class="req">*</span></label><input class="form-control" id="f_name"></div>
+                <div class="form-group"><label class="form-label">หน่วยงาน <span class="req">*</span></label><input class="form-control" id="f_unit"></div>
+                <div class="form-group"><label class="form-label">เบอร์โทร <span class="req">*</span></label><input class="form-control" id="f_tel"></div>
+                <div class="form-group"><label class="form-label">Gmail <span class="req">*</span></label><input class="form-control" id="f_email" type="email"></div>
+              </div>
+            </div>
+          </div>
+          <div class="form-section">
+            <div class="form-section-header">📁 ส่วนที่ 2: ข้อมูลโครงการ</div>
+            <div class="form-body">
+              <div class="form-grid full"><div class="form-group"><label class="form-label">ชื่อโครงการ <span class="req">*</span></label><input class="form-control" id="f_project"></div></div>
+              <div class="form-grid" style="margin-top:12px">
+                <div class="form-group"><label class="form-label">วันเริ่มต้น <span class="req">*</span></label><input class="form-control" type="date" id="f_start"></div>
+                <div class="form-group"><label class="form-label">วันสิ้นสุด <span class="req">*</span></label><input class="form-control" type="date" id="f_end"></div>
+                <div class="form-group"><label class="form-label">งบประมาณ (บาท) <span class="req">*</span></label><input class="form-control" type="number" id="f_budget"></div>
+                <div class="form-group"><label class="form-label">แหล่งงบประมาณ <span class="req">*</span></label><input class="form-control" id="f_budgetsrc"></div>
+              </div>
+              <div class="form-grid full" style="margin-top:12px"><div class="form-group"><label class="form-label">วัตถุประสงค์ <span class="req">*</span></label><textarea class="form-control" id="f_objective" rows="3"></textarea></div></div>
+            </div>
+          </div>
+          <div class="form-section">
+            <div class="form-section-header">📌 ส่วนที่ 3: กิจกรรม</div>
+            <div class="form-body form-grid full">
+              <div class="form-group"><label class="form-label">กิจกรรมที่ 1 <span class="req">*</span></label><textarea class="form-control" id="f_act1" rows="2"></textarea></div>
+              <div class="form-group"><label class="form-label">กิจกรรมที่ 2</label><textarea class="form-control" id="f_act2" rows="2" placeholder="หากไม่มีเว้นว่าง"></textarea></div>
+              <div class="form-group"><label class="form-label">กิจกรรมที่ 3</label><textarea class="form-control" id="f_act3" rows="2" placeholder="หากไม่มีเว้นว่าง"></textarea></div>
+            </div>
+          </div>
+          <div class="form-section">
+            <div class="form-section-header">📊 ส่วนที่ 4: ตัวชี้วัด</div>
+            <div class="form-body">
+              <div class="form-grid">
+                <div class="form-group"><label class="form-label">ตัวชี้วัดเชิงปริมาณ <span class="req">*</span></label><input class="form-control" id="f_kpi1"></div>
+                <div class="form-group"><label class="form-label">ค่าเป้าหมาย <span class="req">*</span></label><input class="form-control" id="f_kpi1target"></div>
+                <div class="form-group"><label class="form-label">ตัวชี้วัดเชิงคุณภาพ <span class="req">*</span></label><input class="form-control" id="f_kpi2"></div>
+                <div class="form-group"><label class="form-label">ค่าเป้าหมาย (ร้อยละ) <span class="req">*</span></label><input class="form-control" id="f_kpi2target"></div>
+              </div>
+              <div class="form-group" style="margin-top:12px"><label class="form-label">กลุ่มเป้าหมาย <span class="req">*</span></label><textarea class="form-control" id="f_target" rows="2"></textarea></div>
+            </div>
+          </div>
+          <div class="form-section">
+            <div class="form-section-header">🔗 ส่วนที่ 5: ความสอดคล้องกับแผน</div>
+            <div class="form-body">
+              <div class="form-grid">
+                <div class="form-group"><label class="form-label">ยุทธศาสตร์ชาติ</label><input class="form-control" id="f_plan1"></div>
+                <div class="form-group"><label class="form-label">แผนแม่บทฯ</label><input class="form-control" id="f_plan2"></div>
+                <div class="form-group"><label class="form-label">นโยบายรัฐบาล</label><input class="form-control" id="f_plan3"></div>
+                <div class="form-group"><label class="form-label">แผนปฏิบัติราชการ</label><input class="form-control" id="f_plan4"></div>
+              </div>
+              <div class="form-group" style="margin-top:12px"><label class="form-label">สถานะโครงการ <span class="req">*</span></label>
+                <select class="form-control" id="f_status" style="max-width:300px">
+                  <option value="ยังไม่สิ้นสุดโครงการ">ยังไม่สิ้นสุดโครงการ</option>
+                  <option value="สิ้นสุดโครงการแล้ว">สิ้นสุดโครงการแล้ว</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-outline" onclick="showView('dashboard')">ยกเลิก</button>
+            <button class="btn btn-primary" onclick="submitProject()">💾 บันทึกโครงการ</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- FORM: รายงานไตรมาส -->
+      <div class="view" id="view-report-form">
+        <div class="card" style="max-width:800px">
+          <div class="card-title">📊 รายงานผลการดำเนินงานรายไตรมาส</div>
+          <div class="form-section">
+            <div class="form-section-header">📌 ข้อมูลเบื้องต้น</div>
+            <div class="form-body">
+              <div class="form-grid">
+                <div class="form-group"><label class="form-label">ชื่อโครงการ <span class="req">*</span></label>
+                  <select class="form-control" id="r_project"><option value="">-- เลือกโครงการ --</option></select>
+                </div>
+                <div class="form-group"><label class="form-label">ไตรมาสที่รายงาน <span class="req">*</span></label>
+                  <select class="form-control" id="r_quarter">
+                    <option value="">-- เลือกไตรมาส --</option>
+                    <option value="1">ไตรมาส 1 (ต.ค.67-ธ.ค.67)</option>
+                    <option value="2">ไตรมาส 2 (ม.ค.68-มี.ค.68)</option>
+                    <option value="3">ไตรมาส 3 (เม.ย.68-มิ.ย.68)</option>
+                    <option value="4">ไตรมาส 4 (ก.ค.68-ก.ย.68)</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="form-section">
+            <div class="form-section-header">✅ ผลการดำเนินงาน</div>
+            <div class="form-body form-grid full">
+              <div class="form-group"><label class="form-label">ผลกิจกรรมที่ 1 <span class="req">*</span></label><textarea class="form-control" id="r_act1" rows="3"></textarea></div>
+              <div class="form-group"><label class="form-label">ผลกิจกรรมที่ 2</label><textarea class="form-control" id="r_act2" rows="2" placeholder="หากไม่มีเว้นว่าง"></textarea></div>
+              <div class="form-group"><label class="form-label">ผลกิจกรรมที่ 3</label><textarea class="form-control" id="r_act3" rows="2" placeholder="หากไม่มีเว้นว่าง"></textarea></div>
+            </div>
+          </div>
+          <div class="form-section">
+            <div class="form-section-header">📈 ตัวชี้วัดและงบประมาณ</div>
+            <div class="form-body">
+              <div class="form-grid">
+                <div class="form-group"><label class="form-label">ตัวชี้วัดปริมาณ (ร้อยละสะสม) <span class="req">*</span></label><input class="form-control" type="number" id="r_kpi1" min="0" max="100"></div>
+                <div class="form-group"><label class="form-label">ตัวชี้วัดคุณภาพ (ร้อยละสะสม) <span class="req">*</span></label><input class="form-control" type="number" id="r_kpi2" min="0" max="100"></div>
+                <div class="form-group"><label class="form-label">งบฯ ไตรมาสนี้ (บาท) <span class="req">*</span></label><input class="form-control" type="number" id="r_budget_q"></div>
+                <div class="form-group"><label class="form-label">งบฯ สะสมรวม (บาท) <span class="req">*</span></label><input class="form-control" type="number" id="r_budget_total"></div>
+              </div>
+            </div>
+          </div>
+          <div class="form-section">
+            <div class="form-section-header">⚠️ ปัญหาและแนวทางแก้ไข</div>
+            <div class="form-body">
+              <div class="form-grid">
+                <div class="form-group"><label class="form-label">ปัญหาการดำเนินงาน <span class="req">*</span></label><textarea class="form-control" id="r_prob1" rows="3" placeholder="ไม่มีให้กรอก 'ไม่มี'"></textarea></div>
+                <div class="form-group"><label class="form-label">แนวทางแก้ไข <span class="req">*</span></label><textarea class="form-control" id="r_sol1" rows="3"></textarea></div>
+                <div class="form-group"><label class="form-label">ปัญหางบประมาณ <span class="req">*</span></label><textarea class="form-control" id="r_prob2" rows="3" placeholder="ไม่มีให้กรอก 'ไม่มี'"></textarea></div>
+                <div class="form-group"><label class="form-label">แนวทางแก้ไขงบประมาณ <span class="req">*</span></label><textarea class="form-control" id="r_sol2" rows="3"></textarea></div>
+              </div>
+            </div>
+          </div>
+          <div class="form-section">
+            <div class="form-section-header">📅 แผนต่อไปและข้อเสนอ</div>
+            <div class="form-body form-grid full">
+              <div class="form-group"><label class="form-label">แผนที่จะดำเนินการต่อไป <span class="req">*</span></label><textarea class="form-control" id="r_plan" rows="3"></textarea></div>
+              <div class="form-group"><label class="form-label">กลไก / เครื่องมือที่ใช้</label><textarea class="form-control" id="r_tool" rows="2"></textarea></div>
+              <div class="form-group"><label class="form-label">ข้อเสนอเชิงนโยบาย</label><textarea class="form-control" id="r_policy" rows="2"></textarea></div>
+              <div class="form-group"><label class="form-label">สถานะโครงการ <span class="req">*</span></label>
+                <select class="form-control" id="r_status" style="max-width:300px">
+                  <option value="ยังไม่สิ้นสุดโครงการ">ยังไม่สิ้นสุดโครงการ</option>
+                  <option value="สิ้นสุดโครงการแล้ว">สิ้นสุดโครงการแล้ว</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-outline" onclick="showView('dashboard')">ยกเลิก</button>
+            <button class="btn btn-primary" onclick="submitReport()">💾 ส่งรายงาน</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- SETTINGS -->
+      <div class="view" id="view-settings">
+        <div class="card" style="max-width:640px">
+          <div class="card-title">⚙️ ตั้งค่าระบบ</div>
+          <div class="setup-box">
+            <div class="setup-title">📋 วิธีเชื่อมระบบกับ Google Sheets</div>
+            <p>
+              1. เปิด Google Sheets ใหม่ ตั้งชื่อ "ระบบติดตามโครงการ 2569"<br>
+              2. ไปที่ Extensions > Apps Script<br>
+              3. วางโค้ดจากไฟล์ Code.gs แล้วกด Save<br>
+              4. รันฟังก์ชัน <strong>"ติดตั้งระบบ"</strong> 1 ครั้ง<br>
+              5. กด Deploy > New deployment > Web app<br>
+              &nbsp;&nbsp;&nbsp;• Execute as: <strong>Me</strong><br>
+              &nbsp;&nbsp;&nbsp;• Who has access: <strong>Anyone</strong><br>
+              6. คัดลอก URL ที่ได้ วางในช่องด้านล่าง แล้วกดบันทึก
+            </p>
+          </div>
+          <div class="form-group" style="margin-bottom:20px">
+            <label class="form-label">URL ของ Apps Script Web App <span class="req">*</span></label>
+            <input class="form-control" id="s_scriptUrl" placeholder="https://script.google.com/macros/s/.../exec">
+            <span class="form-hint">วาง URL ที่ได้จากขั้นตอนที่ 6</span>
+          </div>
+          <button class="btn btn-primary" onclick="saveSettings()">💾 บันทึกและเชื่อมต่อ</button>
+          <button class="btn btn-outline" onclick="testConnection()" style="margin-left:8px">🔍 ทดสอบการเชื่อมต่อ</button>
+        </div>
+
+        <div class="card" style="max-width:640px">
+          <div class="card-title">👥 จัดการผู้ใช้งาน</div>
+          <div class="form-grid" style="margin-bottom:16px">
+            <div class="form-group"><label class="form-label">Gmail</label><input class="form-control" id="u_email" type="email" placeholder="user@gmail.com"></div>
+            <div class="form-group"><label class="form-label">ชื่อ-สกุล</label><input class="form-control" id="u_name"></div>
+            <div class="form-group"><label class="form-label">บทบาท</label>
+              <select class="form-control" id="u_role">
+                <option value="officer">ผู้รับผิดชอบโครงการ</option>
+                <option value="admin">ผู้บริหาร</option>
+                <option value="superadmin">ผู้ดูแลระบบ</option>
+              </select>
+            </div>
+          </div>
+          <button class="btn btn-gold" onclick="addUser()">➕ เพิ่มผู้ใช้งาน</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+// ================================================================
+// CONFIG
+// ================================================================
+var SCRIPT_URL = localStorage.getItem('scriptUrl') || SCRIPT_URL;
+var currentUser = null;
+var allProjects = [];
+var allReports  = [];
+
+var NAV = {
+  officer:    [{id:'dashboard',icon:'📊',label:'ภาพรวมโครงการ'},{id:'project-form',icon:'➕',label:'เพิ่มโครงการใหม่'},{id:'report-form',icon:'📝',label:'รายงานรายไตรมาส'}],
+  admin:      [{id:'dashboard',icon:'📊',label:'Dashboard ภาพรวม'}],
+  superadmin: [{id:'dashboard',icon:'📊',label:'Dashboard ภาพรวม'},{id:'project-form',icon:'➕',label:'เพิ่มโครงการ'},{id:'report-form',icon:'📝',label:'รายงานรายไตรมาส'},{id:'settings',icon:'⚙️',label:'ตั้งค่าระบบ'}]
+};
+var ROLE_TH = {officer:'ผู้รับผิดชอบโครงการ', admin:'ผู้บริหาร', superadmin:'ผู้ดูแลระบบ'};
+
+// ================================================================
+// API HELPER
+// ================================================================
+function api(method, params) {
+  showLoading(true);
+  var url = SCRIPT_URL;
+  if (!url || url === 'YOUR_APPS_SCRIPT_WEB_APP_URL_HERE') {
+    showLoading(false);
+    return Promise.resolve({ ok: false, error: 'ยังไม่ได้ตั้งค่า URL' });
+  }
+  if (method === 'GET') {
+    var qs = Object.keys(params).map(function(k){ return k+'='+encodeURIComponent(params[k]); }).join('&');
+    return fetch(url + '?' + qs)
+      .then(function(r){ return r.json(); })
+      .finally(function(){ showLoading(false); });
+  } else {
+    return fetch(url, { method:'POST', body: JSON.stringify(params) })
+      .then(function(r){ return r.json(); })
+      .finally(function(){ showLoading(false); });
+  }
+}
+
+// ================================================================
+// LOGIN
+// ================================================================
+function selectRole(r) {
+  document.querySelectorAll('.role-btn').forEach(function(b){ b.classList.remove('selected'); });
+  document.getElementById('role-'+r).classList.add('selected');
+  document.getElementById('role-'+r)._role = r;
+  window._selectedRole = r;
+}
+window._selectedRole = 'officer';
+
+function doLogin() {
+  var email = document.getElementById('loginEmail').value.trim();
+  var name  = document.getElementById('loginName').value.trim();
+  if (!email || !name) { showNotify('กรุณากรอก Gmail และชื่อ-สกุล', 'error'); return; }
+
+  // ถ้าไม่มี SCRIPT_URL ให้ใช้ demo mode
+  if (!SCRIPT_URL || SCRIPT_URL === 'YOUR_APPS_SCRIPT_WEB_APP_URL_HERE') {
+    currentUser = { email: email, name: name, role: window._selectedRole };
+    startApp();
+    return;
+  }
+
+  api('GET', { action:'checkUser', email: email }).then(function(res) {
+    if (res.ok && res.user) {
+      currentUser = res.user;
+    } else {
+      // ไม่พบในระบบ ให้ใช้บทบาทที่เลือก (superadmin จะลงทะเบียนให้)
+      currentUser = { email: email, name: name, role: window._selectedRole };
+    }
+    startApp();
+  }).catch(function() {
+    currentUser = { email: email, name: name, role: window._selectedRole };
+    startApp();
+  });
+}
+
+function startApp() {
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('appShell').style.display = 'flex';
+  document.getElementById('userName').textContent = currentUser.name;
+  document.getElementById('userAvatar').textContent = currentUser.name.charAt(0);
+  document.getElementById('userRoleLabel').textContent = ROLE_TH[currentUser.role] || currentUser.role;
+  buildSidebar();
+  if (!SCRIPT_URL || SCRIPT_URL === 'YOUR_APPS_SCRIPT_WEB_APP_URL_HERE') {
+    document.getElementById('setupWarning').style.display = 'block';
+  }
+  loadDashboard();
+  showView('dashboard');
+}
+
+function doLogout() {
+  currentUser = null; allProjects = []; allReports = [];
+  document.getElementById('appShell').style.display = 'none';
+  document.getElementById('loginScreen').style.display = 'flex';
+}
+
+// ================================================================
+// SIDEBAR & VIEWS
+// ================================================================
+function buildSidebar() {
+  var nav = document.getElementById('sidebarNav');
+  nav.innerHTML = '';
+  (NAV[currentUser.role]||NAV.officer).forEach(function(item) {
+    var el = document.createElement('div');
+    el.className = 'nav-item'; el.id = 'nav-'+item.id;
+    el.innerHTML = '<span style="font-size:16px">'+item.icon+'</span>'+item.label;
+    el.onclick = function(){ showView(item.id); };
+    nav.appendChild(el);
+  });
+}
+
+function showView(id) {
+  document.querySelectorAll('.view').forEach(function(v){ v.classList.remove('active'); });
+  document.querySelectorAll('.nav-item').forEach(function(n){ n.classList.remove('active'); });
+  var v = document.getElementById('view-'+id);
+  if (v) v.classList.add('active');
+  var n = document.getElementById('nav-'+id);
+  if (n) n.classList.add('active');
+  var titles = { dashboard:'Dashboard ภาพรวม', 'project-form':'เพิ่มข้อมูลโครงการใหม่', 'report-form':'รายงานผลการดำเนินงานรายไตรมาส', settings:'ตั้งค่าระบบ' };
+  document.getElementById('pageTitle').textContent = titles[id] || id;
+  if (id === 'dashboard') loadDashboard();
+  if (id === 'report-form') populateProjectDropdown();
+  if (id === 'settings') { var s = localStorage.getItem('scriptUrl'); if (s) document.getElementById('s_scriptUrl').value = s; }
+}
+
+// ================================================================
+// DASHBOARD
+// ================================================================
+function loadDashboard() {
+  if (!SCRIPT_URL || SCRIPT_URL === 'YOUR_APPS_SCRIPT_WEB_APP_URL_HERE') {
+    renderDashboardLocal(); return;
+  }
+  Promise.all([
+    api('GET', { action:'getDashboard' }),
+    api('GET', { action:'getProjects', email: currentUser.email, role: currentUser.role }),
+    api('GET', { action:'getReports', projectName: '' })
+  ]).then(function(results) {
+    var dash = results[0]; var proj = results[1]; var rep = results[2];
+    if (dash.ok) {
+      document.getElementById('statTotal').textContent   = dash.data.totalProjects;
+      document.getElementById('statDone').textContent    = dash.data.reportedThisQuarter;
+      document.getElementById('statPending').textContent = dash.data.pendingThisQuarter;
+      document.getElementById('statBudget').textContent  = dash.data.totalBudget > 0 ? dash.data.totalBudget.toLocaleString('th') : '-';
+      document.getElementById('statQuarterLabel').textContent = 'ไตรมาส ' + dash.data.currentQuarter;
+    }
+    if (proj.ok) allProjects = proj.data;
+    if (rep.ok)  allReports  = rep.data;
+    renderTable(allProjects);
+  }).catch(function(){ renderDashboardLocal(); });
+}
+
+function renderDashboardLocal() {
+  document.getElementById('statTotal').textContent   = allProjects.length;
+  document.getElementById('statDone').textContent    = '-';
+  document.getElementById('statPending').textContent = '-';
+  var total = allProjects.reduce(function(s,p){ return s+(parseFloat(p.budget)||0); },0);
+  document.getElementById('statBudget').textContent  = total > 0 ? total.toLocaleString('th') : '-';
+  renderTable(allProjects);
+}
+
+function renderTable(list) {
+  var tbody = document.getElementById('projectTableBody');
+  if (!list || !list.length) {
+    tbody.innerHTML = '<tr><td colspan="9"><div class="empty-state"><div class="empty-icon">📂</div><p>ยังไม่มีโครงการ<br>กดเมนู "เพิ่มโครงการใหม่" เพื่อเริ่มต้น</p></div></td></tr>';
+    return;
+  }
+  tbody.innerHTML = list.map(function(p, i) {
+    var qCells = [1,2,3,4].map(function(q) {
+      var done = allReports.some(function(r){ return r.project===p.name && parseInt(r.quarter)===q; });
+      return '<td style="text-align:center"><span class="q-dot '+(done?'q-done':'q-pending')+'">'+(done?'✓':'–')+'</span></td>';
+    }).join('');
+    return '<tr><td>'+(i+1)+'</td><td><strong>'+p.name+'</strong></td><td>'+p.responsible+'</td>'+
+      '<td>'+(p.budget?(parseFloat(p.budget)).toLocaleString('th')+' บ.':'-')+'</td>'+
+      qCells+
+      '<td><button class="btn btn-outline btn-sm" onclick="prefillReport(\''+p.name.replace(/'/g,"\\'")+'\')" >📝 รายงาน</button></td></tr>';
+  }).join('');
+}
+
+function filterTable() {
+  var q = document.getElementById('searchInput').value.toLowerCase();
+  renderTable(allProjects.filter(function(p){ return p.name.toLowerCase().includes(q); }));
+}
+
+// ================================================================
+// SAVE PROJECT
+// ================================================================
+function submitProject() {
+  var req = ['f_name','f_unit','f_tel','f_email','f_project','f_start','f_end','f_budget','f_budgetsrc','f_objective','f_act1','f_kpi1','f_kpi1target','f_kpi2','f_kpi2target','f_target'];
+  var missing = req.filter(function(id){ return !document.getElementById(id).value.trim(); });
+  if (missing.length) { showNotify('กรุณากรอกข้อมูลที่จำเป็นให้ครบ', 'error'); return; }
+  var d = {
+    action:'saveProject', data: {
+      email:document.getElementById('f_email').value, responsible:document.getElementById('f_name').value,
+      unit:document.getElementById('f_unit').value, tel:document.getElementById('f_tel').value,
+      name:document.getElementById('f_project').value, start:document.getElementById('f_start').value,
+      end:document.getElementById('f_end').value, budget:document.getElementById('f_budget').value,
+      budgetsrc:document.getElementById('f_budgetsrc').value, objective:document.getElementById('f_objective').value,
+      act1:document.getElementById('f_act1').value, act2:document.getElementById('f_act2').value,
+      act3:document.getElementById('f_act3').value, kpi1:document.getElementById('f_kpi1').value,
+      kpi1target:document.getElementById('f_kpi1target').value, kpi2:document.getElementById('f_kpi2').value,
+      kpi2target:document.getElementById('f_kpi2target').value, target:document.getElementById('f_target').value,
+      plan1:document.getElementById('f_plan1').value, plan2:document.getElementById('f_plan2').value,
+      plan3:document.getElementById('f_plan3').value, plan4:document.getElementById('f_plan4').value,
+      status:document.getElementById('f_status').value
+    }
+  };
+  if (!SCRIPT_URL || SCRIPT_URL === 'YOUR_APPS_SCRIPT_WEB_APP_URL_HERE') {
+    allProjects.push(d.data); showNotify('บันทึกสำเร็จ (โหมดทดสอบ) ✓','success');
+    setTimeout(function(){ showView('dashboard'); },1000); return;
+  }
+  api('POST', d).then(function(res) {
+    if (res.ok) { showNotify('บันทึกโครงการสำเร็จ ✓','success'); setTimeout(function(){ showView('dashboard'); },1000); }
+    else showNotify('เกิดข้อผิดพลาด: '+res.error,'error');
+  });
+}
+
+// ================================================================
+// SAVE REPORT
+// ================================================================
+function populateProjectDropdown() {
+  var sel = document.getElementById('r_project');
+  var mine = currentUser.role==='officer' ? allProjects.filter(function(p){ return p.email===currentUser.email; }) : allProjects;
+  sel.innerHTML = '<option value="">-- เลือกโครงการ --</option>' +
+    mine.map(function(p){ return '<option value="'+p.name+'">'+p.name+'</option>'; }).join('');
+}
+
+function prefillReport(name) { showView('report-form'); document.getElementById('r_project').value = name; }
+
+function submitReport() {
+  var req = ['r_project','r_quarter','r_act1','r_kpi1','r_kpi2','r_budget_q','r_budget_total','r_prob1','r_sol1','r_prob2','r_sol2','r_plan'];
+  var missing = req.filter(function(id){ return !document.getElementById(id).value.trim(); });
+  if (missing.length) { showNotify('กรุณากรอกข้อมูลที่จำเป็นให้ครบ','error'); return; }
+  var d = {
+    action:'saveReport', data: {
+      email:currentUser.email, reporter:currentUser.name,
+      project:document.getElementById('r_project').value, quarter:document.getElementById('r_quarter').value,
+      act1:document.getElementById('r_act1').value, act2:document.getElementById('r_act2').value,
+      act3:document.getElementById('r_act3').value, kpi1:document.getElementById('r_kpi1').value,
+      kpi2:document.getElementById('r_kpi2').value, budget_q:document.getElementById('r_budget_q').value,
+      budget_total:document.getElementById('r_budget_total').value, prob1:document.getElementById('r_prob1').value,
+      sol1:document.getElementById('r_sol1').value, prob2:document.getElementById('r_prob2').value,
+      sol2:document.getElementById('r_sol2').value, plan:document.getElementById('r_plan').value,
+      tool:document.getElementById('r_tool').value, policy:document.getElementById('r_policy').value,
+      status:document.getElementById('r_status').value
+    }
+  };
+  if (!SCRIPT_URL || SCRIPT_URL === 'YOUR_APPS_SCRIPT_WEB_APP_URL_HERE') {
+    allReports.push(d.data); showNotify('ส่งรายงานสำเร็จ (โหมดทดสอบ) ✓','success');
+    setTimeout(function(){ showView('dashboard'); },1000); return;
+  }
+  api('POST', d).then(function(res) {
+    if (res.ok) { showNotify('ส่งรายงานสำเร็จ ✓','success'); setTimeout(function(){ showView('dashboard'); },1000); }
+    else showNotify('เกิดข้อผิดพลาด: '+res.error,'error');
+  });
+}
+
+// ================================================================
+// SETTINGS
+// ================================================================
+function saveSettings() {
+  var url = document.getElementById('s_scriptUrl').value.trim();
+  if (!url) { showNotify('กรุณากรอก URL','error'); return; }
+  SCRIPT_URL = url;
+  localStorage.setItem('scriptUrl', url);
+  showNotify('บันทึกและเชื่อมต่อสำเร็จ ✓','success');
+  document.getElementById('setupWarning').style.display = 'none';
+  setTimeout(function(){ loadDashboard(); },500);
+}
+
+function testConnection() {
+  var url = document.getElementById('s_scriptUrl').value.trim();
+  if (!url) { showNotify('กรุณากรอก URL ก่อน','error'); return; }
+  var old = SCRIPT_URL; SCRIPT_URL = url;
+  api('GET', { action:'getDashboard' }).then(function(res) {
+    if (res.ok) showNotify('เชื่อมต่อสำเร็จ! พบ '+res.data.totalProjects+' โครงการ','success');
+    else { showNotify('เชื่อมต่อไม่สำเร็จ: '+(res.error||'unknown'),'error'); SCRIPT_URL = old; }
+  }).catch(function(){ showNotify('เชื่อมต่อไม่สำเร็จ กรุณาตรวจสอบ URL','error'); SCRIPT_URL = old; });
+}
+
+function addUser() {
+  var email = document.getElementById('u_email').value.trim();
+  var name  = document.getElementById('u_name').value.trim();
+  var role  = document.getElementById('u_role').value;
+  if (!email || !name) { showNotify('กรุณากรอก Gmail และชื่อ','error'); return; }
+  api('POST', { action:'registerUser', data:{ email:email, name:name, role:role } }).then(function(res) {
+    if (res.ok) { showNotify('เพิ่มผู้ใช้สำเร็จ ✓','success'); document.getElementById('u_email').value=''; document.getElementById('u_name').value=''; }
+    else showNotify('เกิดข้อผิดพลาด: '+res.error,'error');
+  });
+}
+
+// ================================================================
+// UTILS
+// ================================================================
+function showLoading(v){ document.getElementById('loading').className = 'loading'+(v?' show':''); }
+function showNotify(msg, type) {
+  var n = document.getElementById('notify');
+  n.textContent = msg;
+  n.className = 'notify show'+(type?' '+type:'');
+  setTimeout(function(){ n.classList.remove('show'); },3000);
+}
+</script>
+</body>
+</html>
