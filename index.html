@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ระบบติดตามโครงการ — สำนักงานศึกษาธิการจังหวัดเลย</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#1a3a6b;--navy-dark:#0f2347;--navy-light:#e0e7ff;
+  --blue:#2563eb;--blue-l:#dbeafe;
+  --green:#16a34a;--green-l:#dcfce7;
+  --amber:#d97706;--amber-l:#fef3c7;
+  --red:#dc2626;--red-l:#fee2e2;
+  --gray:#6b7280;--gray-l:#f3f4f6;
+  --border:rgba(0,0,0,0.1);
+  --radius:10px;--radius-sm:6px;
+  --shadow:0 1px 3px rgba(0,0,0,0.1);
+}
+body{font-family:'Sarabun',sans-serif;font-size:14px;color:#1f2937;background:#f1f5f9;min-height:100vh}
+
+/* ── TOPBAR ── */
+.topbar{background:var(--navy);color:#fff;padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:56px;box-shadow:0 2px 8px rgba(0,0,0,0.2);position:sticky;top:0;z-index:50}
+.topbar-brand{display:flex;align-items:center;gap:12px}
+.topbar-logo{width:36px;height:36px;background:rgba(255,255,255,0.15);border-radius:8px;display:flex;align-items:center;justify-content:center}
+.topbar-logo svg{width:20px;height:20px;fill:#fff}
+.topbar-title{font-size:15px;font-weight:600;letter-spacing:0.2px}
+.topbar-sub{font-size:11px;opacity:0.6;margin-top:1px}
+.topbar-right{display:flex;align-items:center;gap:10px}
+.user-pill{background:rgba(255,255,255,0.15);border-radius:20px;padding:4px 14px;font-size:12px}
+.btn-logout{background:transparent;border:1px solid rgba(255,255,255,0.35);color:#fff;border-radius:var(--radius-sm);padding:5px 13px;font-size:12px;cursor:pointer;font-family:'Sarabun',sans-serif;transition:background .2s}
+.btn-logout:hover{background:rgba(255,255,255,0.1)}
+
+/* ── TABS ── */
+.tab-bar{background:#fff;border-bottom:1px solid var(--border);display:flex;padding:0 24px;gap:0;box-shadow:var(--shadow)}
+.tab{padding:13px 16px;font-size:13px;cursor:pointer;color:var(--gray);border-bottom:2px solid transparent;transition:.15s;white-space:nowrap;font-family:'Sarabun',sans-serif}
+.tab.active{color:var(--navy);border-bottom-color:var(--navy);font-weight:600}
+.tab:hover:not(.active){color:#1f2937}
+
+/* ── MAIN ── */
+.main{padding:20px 24px;max-width:1200px;margin:0 auto}
+.hidden{display:none!important}
+
+/* ── LOGIN ── */
+.login-page{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#0f2347 0%,#1a3a6b 50%,#1e4080 100%);padding:24px}
+.login-box{background:#fff;border-radius:16px;padding:36px;width:100%;max-width:360px;box-shadow:0 20px 60px rgba(0,0,0,0.3)}
+.login-icon{width:52px;height:52px;background:var(--navy);border-radius:12px;display:flex;align-items:center;justify-content:center;margin:0 auto 12px}
+.login-icon svg{width:28px;height:28px;fill:#fff}
+.login-org{text-align:center;font-size:11px;color:var(--gray);margin-bottom:4px}
+.login-title{text-align:center;font-size:18px;font-weight:600;color:var(--navy);margin-bottom:24px}
+.err-msg{background:var(--red-l);color:var(--red);border-radius:var(--radius-sm);padding:8px 12px;font-size:12px;text-align:center;margin-bottom:12px}
+.flabel{display:block;font-size:12px;color:var(--gray);margin-bottom:5px;font-weight:500}
+.frow{margin-bottom:14px}
+.frow input,.frow select,.frow textarea{width:100%;border:1px solid #d1d5db;border-radius:var(--radius-sm);padding:9px 12px;font-size:13px;font-family:'Sarabun',sans-serif;color:#1f2937;transition:border .2s,box-shadow .2s;outline:none}
+.frow input:focus,.frow select:focus,.frow textarea:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(37,99,235,0.1)}
+.frow textarea{min-height:64px;resize:vertical}
+.fgrid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.btn-primary{width:100%;background:var(--navy);color:#fff;border:none;border-radius:var(--radius-sm);padding:11px;font-size:14px;font-weight:600;cursor:pointer;font-family:'Sarabun',sans-serif;transition:background .2s;margin-top:4px}
+.btn-primary:hover{background:var(--navy-dark)}
+.login-hint{font-size:11px;color:var(--gray);text-align:center;margin-top:14px;line-height:1.8}
+
+/* ── STAT CARDS ── */
+.stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}
+.stat-card{background:#fff;border-radius:var(--radius);padding:16px;box-shadow:var(--shadow);border:1px solid var(--border)}
+.stat-label{font-size:11px;color:var(--gray);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px}
+.stat-value{font-size:26px;font-weight:600;line-height:1}
+.stat-sub{font-size:11px;color:var(--gray);margin-top:4px}
+
+/* ── TABLE CARD ── */
+.card{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid var(--border);overflow:hidden;margin-bottom:16px}
+.card-head{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:#fafafa}
+.card-title{font-size:13px;font-weight:600;color:var(--navy)}
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{background:#f9fafb;padding:10px 14px;text-align:left;font-weight:600;font-size:11px;color:var(--gray);border-bottom:1px solid var(--border);white-space:nowrap;text-transform:uppercase;letter-spacing:0.3px}
+td{padding:11px 14px;border-bottom:1px solid rgba(0,0,0,0.05);vertical-align:top}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#f9fafb}
+
+/* ── BADGES ── */
+.badge{display:inline-block;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600}
+.b-green{background:var(--green-l);color:var(--green)}
+.b-amber{background:var(--amber-l);color:var(--amber)}
+.b-red{background:var(--red-l);color:var(--red)}
+.b-blue{background:var(--blue-l);color:var(--blue)}
+.b-navy{background:var(--navy-light);color:var(--navy)}
+.b-gray{background:var(--gray-l);color:var(--gray)}
+
+/* ── BUTTONS ── */
+.sec-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.sec-title{font-size:14px;font-weight:600;color:var(--navy)}
+.btn{background:var(--navy);color:#fff;border:none;border-radius:var(--radius-sm);padding:8px 16px;font-size:13px;cursor:pointer;font-family:'Sarabun',sans-serif;font-weight:500;transition:background .2s}
+.btn:hover{background:var(--navy-dark)}
+.btn-outline{background:transparent;color:var(--navy);border:1px solid var(--navy);border-radius:var(--radius-sm);padding:7px 14px;font-size:13px;cursor:pointer;font-family:'Sarabun',sans-serif;transition:.2s}
+.btn-outline:hover{background:var(--navy-light)}
+.btn-sm{padding:4px 10px;font-size:11px;border-radius:var(--radius-sm);border:none;cursor:pointer;font-family:'Sarabun',sans-serif;font-weight:500;transition:.2s}
+.be{background:var(--blue-l);color:var(--blue)}.be:hover{opacity:.8}
+.br{background:var(--red-l);color:var(--red)}.br:hover{opacity:.8}
+.bg2{background:var(--green-l);color:var(--green)}.bg2:hover{opacity:.8}
+.bo{background:var(--amber-l);color:var(--amber)}.bo:hover{opacity:.8}
+
+/* ── MODAL ── */
+.modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:200;display:flex;align-items:flex-start;justify-content:center;padding:24px 16px;overflow-y:auto}
+.modal{background:#fff;border-radius:var(--radius);width:100%;max-width:620px;box-shadow:0 20px 60px rgba(0,0,0,0.3)}
+.modal-head{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--navy);border-radius:var(--radius) var(--radius) 0 0}
+.modal-title{font-size:15px;font-weight:600;color:#fff}
+.modal-x{background:none;border:none;font-size:22px;cursor:pointer;color:rgba(255,255,255,0.7);line-height:1;padding:0;font-family:'Sarabun',sans-serif}
+.modal-body{padding:18px 20px;max-height:65vh;overflow-y:auto}
+.modal-foot{padding:12px 20px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px}
+.sdiv{font-size:12px;font-weight:600;color:var(--navy);border-bottom:1px solid var(--navy-light);padding-bottom:5px;margin:16px 0 10px;text-transform:uppercase;letter-spacing:0.5px}
+
+/* ── KPI TABLE ── */
+.kpi-tbl{width:100%;border-collapse:collapse;font-size:12px}
+.kpi-tbl th{background:var(--navy-light);color:var(--navy);padding:7px 10px;font-weight:600;border:1px solid rgba(0,0,0,0.1);text-align:left}
+.kpi-tbl td{padding:6px 10px;border:1px solid rgba(0,0,0,0.08);vertical-align:middle}
+.kpi-tbl input,.kpi-tbl select{width:100%;font-size:12px;border:none;background:transparent;font-family:'Sarabun',sans-serif;padding:2px 0;outline:none}
+.kpi-tbl input:focus,.kpi-tbl select:focus{background:#f0f4ff;border-radius:3px;padding:2px 4px}
+
+/* ── REPORT CARD ── */
+.report-card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:12px;box-shadow:var(--shadow)}
+
+/* ── LOADING ── */
+.loading-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px;gap:14px}
+.spinner{width:32px;height:32px;border:3px solid var(--navy-light);border-top-color:var(--navy);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-text{font-size:13px;color:var(--gray)}
+
+/* ── FILTER ── */
+.filter-bar{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.filter-bar input{flex:1;min-width:160px;border:1px solid #d1d5db;border-radius:var(--radius-sm);padding:7px 12px;font-size:13px;font-family:'Sarabun',sans-serif;outline:none}
+.filter-bar input:focus{border-color:var(--blue)}
+.filter-bar select{border:1px solid #d1d5db;border-radius:var(--radius-sm);padding:7px 10px;font-size:13px;font-family:'Sarabun',sans-serif;outline:none}
+
+/* ── EMPTY STATE ── */
+.empty{text-align:center;padding:40px;color:var(--gray);font-size:13px}
+
+/* ── PROGRESS ── */
+.prog-wrap{display:flex;align-items:center;gap:8px}
+.prog-bar{flex:1;height:6px;background:#e5e7eb;border-radius:3px;overflow:hidden;min-width:60px}
+.prog-fill{height:100%;border-radius:3px}
+
+@media(max-width:640px){
+  .stat-row{grid-template-columns:repeat(2,1fr)}
+  .fgrid2{grid-template-columns:1fr}
+  .main{padding:14px}
+  .topbar{padding:0 14px}
+  .tab{padding:11px 10px;font-size:12px}
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN PAGE -->
+<div id="page-login" class="login-page">
+  <div class="login-box">
+    <div class="login-icon">
+      <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+    </div>
+    <div class="login-org">สำนักงานศึกษาธิการจังหวัดเลย</div>
+    <div class="login-title">ระบบติดตามโครงการ</div>
+    <div id="lerr" class="err-msg hidden"></div>
+    <div class="frow"><label class="flabel">ชื่อผู้ใช้</label><input type="text" id="lu" placeholder="กรอก username" autocomplete="username"></div>
+    <div class="frow"><label class="flabel">รหัสผ่าน</label><input type="password" id="lp" placeholder="กรอก password" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"></div>
+    <button class="btn-primary" id="lbtn" onclick="doLogin()">เข้าสู่ระบบ</button>
+    <div class="login-hint">ข้อมูลผู้ใช้งานจัดการได้ใน Google Sheets<br>Sheet: users</div>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="page-main" class="hidden">
+  <div class="topbar">
+    <div class="topbar-brand">
+      <div class="topbar-logo"><svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg></div>
+      <div>
+        <div class="topbar-title">ระบบติดตามโครงการตามแผนปฏิบัติราชการ</div>
+        <div class="topbar-sub">สำนักงานศึกษาธิการจังหวัดเลย</div>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <div class="user-pill" id="u-name"></div>
+      <button class="btn-logout" onclick="doLogout()">ออกจากระบบ</button>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab active" id="tab-dash" onclick="showTab('dashboard',this)">ภาพรวม</div>
+    <div class="tab" id="tab-proj" onclick="showTab('projects',this)">โครงการทั้งหมด</div>
+    <div class="tab hidden" id="tab-my" onclick="showTab('myproj',this)">โครงการของฉัน</div>
+    <div class="tab hidden" id="tab-rep" onclick="showTab('report',this)">รายงานผล</div>
+    <div class="tab hidden" id="tab-adm" onclick="showTab('admin',this)">จัดการโครงการ</div>
+  </div>
+
+  <div class="main">
+
+    <!-- DASHBOARD -->
+    <div id="t-dashboard">
+      <div id="dash-loading" class="loading-wrap"><div class="spinner"></div><div class="loading-text">กำลังโหลดข้อมูล...</div></div>
+      <div id="dash-content" class="hidden">
+        <div class="stat-row" id="stat-row"></div>
+        <div class="sec-hdr">
+          <div class="sec-title">สถานะโครงการทั้งหมด</div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <select id="dash-q" onchange="renderDash()" style="border:1px solid #d1d5db;border-radius:6px;padding:6px 10px;font-size:12px;font-family:'Sarabun',sans-serif;outline:none">
+              <option value="">ทุกไตรมาส</option>
+              <option value="Q1">ไตรมาส 1 (ต.ค.–ธ.ค.)</option>
+              <option value="Q2">ไตรมาส 2 (ม.ค.–มี.ค.)</option>
+              <option value="Q3">ไตรมาส 3 (เม.ย.–มิ.ย.)</option>
+              <option value="Q4">ไตรมาส 4 (ก.ค.–ก.ย.)</option>
+            </select>
+            <button class="btn-outline" onclick="loadAll()" style="font-size:12px;padding:6px 12px">รีเฟรช</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="tbl-wrap">
+            <table><thead><tr><th>ชื่อโครงการ</th><th>ผู้รับผิดชอบ</th><th>งบประมาณ</th><th>ตัวชี้วัด</th><th>สถานะ</th><th>รายงานล่าสุด</th></tr></thead>
+            <tbody id="dash-tbody"></tbody></table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ALL PROJECTS -->
+    <div id="t-projects" class="hidden">
+      <div class="filter-bar">
+        <input type="text" id="search" placeholder="ค้นหาโครงการ..." oninput="renderProjects()">
+        <select id="f-status" onchange="renderProjects()" style="border:1px solid #d1d5db;border-radius:6px;padding:7px 10px;font-size:13px;font-family:'Sarabun',sans-serif;outline:none">
+          <option value="">ทุกสถานะ</option>
+          <option value="ongoing">ยังไม่สิ้นสุด</option>
+          <option value="completed">สิ้นสุดแล้ว</option>
+        </select>
+      </div>
+      <div class="card">
+        <div class="tbl-wrap">
+          <table><thead><tr><th>ชื่อโครงการ</th><th>กลุ่มเป้าหมาย</th><th>ระยะเวลา</th><th>งบประมาณ</th><th>ตัวชี้วัด</th><th>สถานะ</th><th></th></tr></thead>
+          <tbody id="proj-tbody"></tbody></table>
+        </div>
+      </div>
+    </div>
+
+    <!-- MY PROJECTS -->
+    <div id="t-myproj" class="hidden">
+      <div class="sec-hdr">
+        <div class="sec-title">โครงการของฉัน</div>
+        <button class="btn" onclick="openProjModal(null)">+ เพิ่มโครงการใหม่</button>
+      </div>
+      <div class="card">
+        <div class="tbl-wrap">
+          <table><thead><tr><th>ชื่อโครงการ</th><th>งบประมาณ</th><th>ระยะเวลา</th><th>ตัวชี้วัด</th><th>สถานะ</th><th>จัดการ</th></tr></thead>
+          <tbody id="myproj-tbody"></tbody></table>
+        </div>
+      </div>
+    </div>
+
+    <!-- REPORT -->
+    <div id="t-report" class="hidden">
+      <div id="report-list"></div>
+    </div>
+
+    <!-- ADMIN -->
+    <div id="t-admin" class="hidden">
+      <div class="sec-hdr">
+        <div class="sec-title">จัดการโครงการทั้งหมด</div>
+        <button class="btn" onclick="openProjModal(null)">+ เพิ่มโครงการ</button>
+      </div>
+      <div class="card">
+        <div class="tbl-wrap">
+          <table><thead><tr><th>ชื่อโครงการ</th><th>ผู้รับผิดชอบ</th><th>งบประมาณ</th><th>สถานะ</th><th>จัดการ</th></tr></thead>
+          <tbody id="admin-tbody"></tbody></table>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- MODAL: โครงการ -->
+<div id="m-proj" class="modal-overlay hidden">
+<div class="modal">
+  <div class="modal-head"><div class="modal-title" id="mp-title">กรอกข้อมูลโครงการ</div><button class="modal-x" onclick="closeM('m-proj')">×</button></div>
+  <div class="modal-body">
+    <div class="sdiv">ข้อมูลทั่วไป</div>
+    <div class="frow"><label class="flabel">ชื่อโครงการ *</label><input type="text" id="p-name" placeholder="ระบุชื่อโครงการ"></div>
+    <div class="frow"><label class="flabel">หลักการและเหตุผล</label><textarea id="p-reason" placeholder="สรุปหลักการและเหตุผล"></textarea></div>
+    <div class="frow"><label class="flabel">วัตถุประสงค์</label><textarea id="p-obj" placeholder="ระบุวัตถุประสงค์"></textarea></div>
+    <div class="frow"><label class="flabel">กลุ่มเป้าหมาย</label><input type="text" id="p-target" placeholder="เช่น ครูผู้สอน 35 คน"></div>
+    <div class="fgrid2">
+      <div class="frow"><label class="flabel">วันเริ่มต้น</label><input type="date" id="p-start"></div>
+      <div class="frow"><label class="flabel">วันสิ้นสุด</label><input type="date" id="p-end"></div>
+    </div>
+    <div class="frow"><label class="flabel">สถานที่ดำเนินการ</label><input type="text" id="p-place"></div>
+    <div class="frow"><label class="flabel">กิจกรรมที่วางแผน</label><textarea id="p-activities" placeholder="1. ...&#10;2. ...&#10;3. ..."></textarea></div>
+    <div class="sdiv">ตัวชี้วัด (KPI)</div>
+    <table class="kpi-tbl">
+      <thead><tr><th style="width:42%">ตัวชี้วัด</th><th style="width:16%">ประเภท</th><th style="width:24%">ค่าเป้าหมาย</th><th style="width:18%">หมายเหตุ</th></tr></thead>
+      <tbody id="kpi-rows"></tbody>
+    </table>
+    <button onclick="addKpiRow()" style="margin-top:8px;font-size:11px;background:#f9fafb;border:1px solid #d1d5db;border-radius:4px;padding:4px 12px;cursor:pointer;font-family:'Sarabun',sans-serif">+ เพิ่มตัวชี้วัด</button>
+    <div class="sdiv">งบประมาณ</div>
+    <div class="fgrid2">
+      <div class="frow"><label class="flabel">งบประมาณทั้งหมด (บาท)</label><input type="number" id="p-budget" placeholder="0"></div>
+      <div class="frow"><label class="flabel">แหล่งงบประมาณ</label><input type="text" id="p-budget-src" placeholder="เช่น สป., สช."></div>
+    </div>
+    <div class="sdiv">ผู้รับผิดชอบ (ข้อมูลลับ — เฉพาะ Admin)</div>
+    <div class="fgrid2">
+      <div class="frow"><label class="flabel">ชื่อ-นามสกุล</label><input type="text" id="p-owner-name"></div>
+      <div class="frow"><label class="flabel">ตำแหน่ง</label><input type="text" id="p-owner-pos"></div>
+    </div>
+    <div class="frow"><label class="flabel">หน่วยงาน</label><input type="text" id="p-owner-dept"></div>
+    <div class="frow"><label class="flabel">สถานะโครงการ</label>
+      <select id="p-status"><option value="ongoing">ยังไม่สิ้นสุดโครงการ</option><option value="completed">สิ้นสุดโครงการแล้ว</option></select>
+    </div>
+  </div>
+  <div class="modal-foot">
+    <div id="p-saving" class="hidden" style="font-size:12px;color:var(--gray);align-self:center">กำลังบันทึก...</div>
+    <button class="btn-outline" onclick="closeM('m-proj')">ยกเลิก</button>
+    <button class="btn" onclick="saveProj()">บันทึกโครงการ</button>
+  </div>
+</div></div>
+
+<!-- MODAL: รายงานผล -->
+<div id="m-report" class="modal-overlay hidden">
+<div class="modal">
+  <div class="modal-head"><div class="modal-title" id="mr-title">รายงานผลการดำเนินงาน</div><button class="modal-x" onclick="closeM('m-report')">×</button></div>
+  <div class="modal-body">
+    <div id="mr-proj-info" style="background:#f0f4ff;border-radius:8px;padding:12px;margin-bottom:14px;font-size:12px;border-left:3px solid var(--navy)"></div>
+    <div class="frow"><label class="flabel">ไตรมาสที่รายงาน</label>
+      <select id="r-quarter"><option value="Q1">ไตรมาส 1 (ต.ค.–ธ.ค.)</option><option value="Q2">ไตรมาส 2 (ม.ค.–มี.ค.)</option><option value="Q3">ไตรมาส 3 (เม.ย.–มิ.ย.)</option><option value="Q4">ไตรมาส 4 (ก.ค.–ก.ย.)</option></select>
+    </div>
+    <div class="sdiv">ผลการดำเนินงานของกิจกรรม</div>
+    <div class="frow"><textarea id="r-activity-result" placeholder="สรุปผลการดำเนินกิจกรรมเทียบกับที่วางแผนไว้..." style="min-height:80px"></textarea></div>
+    <div class="sdiv">ผลการดำเนินงานตามตัวชี้วัด</div>
+    <table class="kpi-tbl"><thead><tr><th>ตัวชี้วัด</th><th>ค่าเป้าหมาย</th><th>ผลที่ได้จริง</th><th>สถานะ</th></tr></thead>
+    <tbody id="r-kpi-rows"></tbody></table>
+    <div class="sdiv">ภาพกิจกรรม</div>
+    <div class="frow"><input type="text" id="r-photos" placeholder="ระบุ URL หรือชื่อไฟล์ภาพ (คั่นด้วยจุลภาค)"></div>
+    <div class="sdiv">งบประมาณ</div>
+    <div class="fgrid2">
+      <div class="frow"><label class="flabel">ผลการใช้จ่าย (สะสม) บาท</label><input type="number" id="r-spent" oninput="checkBudget()"></div>
+      <div class="frow"><label class="flabel">สถานะงบ</label><div id="r-budget-status" style="margin-top:8px;font-size:12px;color:var(--gray)">กรอกจำนวนเงินเพื่อตรวจสอบ</div></div>
+    </div>
+    <div class="sdiv">ปัญหา อุปสรรค และข้อเสนอแนะ</div>
+    <div class="frow"><label class="flabel">ปัญหา/อุปสรรค</label><textarea id="r-problems"></textarea></div>
+    <div class="frow"><label class="flabel">ข้อเสนอแนะ</label><textarea id="r-suggest1"></textarea></div>
+    <div class="sdiv">ปัญหาการใช้จ่ายงบประมาณ และข้อเสนอแนะ</div>
+    <div class="frow"><label class="flabel">ปัญหาการใช้จ่าย</label><textarea id="r-budget-prob"></textarea></div>
+    <div class="frow"><label class="flabel">ข้อเสนอแนะด้านงบประมาณ</label><textarea id="r-suggest2"></textarea></div>
+    <div class="sdiv">ประโยชน์ที่สาธารณชนได้รับ</div>
+    <div class="frow"><textarea id="r-benefit"></textarea></div>
+    <div class="sdiv">ข้อมูลผู้รายงาน (ลับเฉพาะ Admin)</div>
+    <div class="fgrid2">
+      <div class="frow"><label class="flabel">ชื่อผู้รายงาน</label><input type="text" id="r-reporter"></div>
+      <div class="frow"><label class="flabel">ตำแหน่ง</label><input type="text" id="r-pos"></div>
+    </div>
+    <div class="frow"><label class="flabel">เบอร์โทรศัพท์</label><input type="text" id="r-tel"></div>
+  </div>
+  <div class="modal-foot">
+    <div id="r-saving" class="hidden" style="font-size:12px;color:var(--gray);align-self:center">กำลังบันทึก...</div>
+    <button class="btn-outline" onclick="closeM('m-report')">ยกเลิก</button>
+    <button class="btn" onclick="saveReport()">บันทึกรายงานผล</button>
+  </div>
+</div></div>
+
+<!-- MODAL: ดูรายงาน -->
+<div id="m-view" class="modal-overlay hidden">
+<div class="modal">
+  <div class="modal-head"><div class="modal-title" id="mv-title">สรุปผลการดำเนินงาน</div><button class="modal-x" onclick="closeM('m-view')">×</button></div>
+  <div class="modal-body" id="mv-body"></div>
+  <div class="modal-foot"><button class="btn-outline" onclick="closeM('m-view')">ปิด</button></div>
+</div></div>
+
+<script>
+var API='https://script.google.com/macros/s/AKfycbzpzo54hiDiZXrd5Dr8nWHdHwwyTk3JVaTglx3FgPCXThpaVtr1vAG01GUfXrlnObT41w/exec';
+var cu=null,projects=[],reports=[],editProjId=null,reportProjId=null;
+
+function api(params){
+  return new Promise(function(resolve,reject){
+    var cbName='cb'+Date.now();
+    var script=document.createElement('script');
+    var timer=setTimeout(function(){
+      cleanup();reject(new Error('timeout'));
+    },20000);
+    window[cbName]=function(data){cleanup();resolve(data);};
+    function cleanup(){
+      clearTimeout(timer);
+      delete window[cbName];
+      if(script.parentNode)script.parentNode.removeChild(script);
+    }
+    script.onerror=function(){cleanup();reject(new Error('error'));};
+    // สร้าง query string โดยไม่ encode ข้อมูลซ้ำ
+    var parts=['callback='+cbName];
+    Object.keys(params).forEach(function(k){
+      var v=params[k];
+      if(typeof v==='object') v=JSON.stringify(v);
+      parts.push(encodeURIComponent(k)+'='+encodeURIComponent(String(v)));
+    });
+    script.src=API+'?'+parts.join('&');
+    document.head.appendChild(script);
+  });
+}
+
+function sl(s){return{ongoing:'ยังไม่สิ้นสุด',completed:'สิ้นสุดแล้ว'}[s]||s}
+function fmt(n){return Number(n||0).toLocaleString('th-TH')}
+function getLatestReport(pid){var rs=reports.filter(function(r){return String(r.projectId)===String(pid)});return rs.length?rs[rs.length-1]:null}
+
+function doLogin(){
+  var u=document.getElementById('lu').value.trim();
+  var p=document.getElementById('lp').value;
+  var err=document.getElementById('lerr');
+  var btn=document.getElementById('lbtn');
+  err.classList.add('hidden');
+  if(!u||!p){err.textContent='กรุณากรอกชื่อผู้ใช้และรหัสผ่าน';err.classList.remove('hidden');return}
+  btn.textContent='กำลังตรวจสอบ...';btn.disabled=true;
+  api({action:'login',username:u,password:p}).then(function(r){
+    btn.textContent='เข้าสู่ระบบ';btn.disabled=false;
+    if(r.success){
+      cu={username:u,role:r.role,name:r.name,ownerId:r.ownerId};
+      document.getElementById('page-login').classList.add('hidden');
+      document.getElementById('page-main').classList.remove('hidden');
+      document.getElementById('u-name').textContent=cu.name;
+      setupTabs();loadAll();
+    } else {
+      err.textContent='ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง';err.classList.remove('hidden');
+    }
+  }).catch(function(){
+    btn.textContent='เข้าสู่ระบบ';btn.disabled=false;
+    err.textContent='ไม่สามารถเชื่อมต่อได้ กรุณาลองใหม่';err.classList.remove('hidden');
+  });
+}
+
+function setupTabs(){
+  var isAdmin=cu.role==='admin';
+  document.getElementById('tab-my').classList.toggle('hidden',isAdmin);
+  document.getElementById('tab-rep').classList.remove('hidden');
+  document.getElementById('tab-adm').classList.toggle('hidden',!isAdmin);
+  document.getElementById('tab-rep').textContent=isAdmin?'รายงานผลทุกโครงการ':'รายงานผลโครงการของฉัน';
+}
+
+function doLogout(){
+  cu=null;projects=[];reports=[];
+  document.getElementById('page-main').classList.add('hidden');
+  document.getElementById('page-login').classList.remove('hidden');
+  document.getElementById('lu').value='';document.getElementById('lp').value='';
+  ['tab-my','tab-rep','tab-adm'].forEach(function(id){document.getElementById(id).classList.add('hidden')});
+}
+
+function loadAll(){
+  document.getElementById('dash-loading').classList.remove('hidden');
+  document.getElementById('dash-content').classList.add('hidden');
+  Promise.all([
+    api({action:'getProjects'}),
+    api({action:'getReports'})
+  ]).then(function(res){
+    document.getElementById('dash-loading').classList.add('hidden');
+    document.getElementById('dash-content').classList.remove('hidden');
+    if(res[0].success) projects=res[0].data||[];
+    if(res[1].success) reports=res[1].data||[];
+    renderDash();renderProjects();renderReportTab();renderAdmin();
+  }).catch(function(){
+    document.getElementById('dash-loading').classList.add('hidden');
+    document.getElementById('dash-content').classList.remove('hidden');
+    document.getElementById('dash-content').innerHTML='<div style="background:#fee2e2;color:#dc2626;padding:14px;border-radius:8px;font-size:13px">ไม่สามารถเชื่อมต่อ Google Sheets ได้ กรุณาตรวจสอบ Apps Script URL</div>';
+  });
+}
+
+function showTab(name,el){
+  ['dashboard','projects','myproj','report','admin'].forEach(function(t){document.getElementById('t-'+t).classList.toggle('hidden',t!==name)});
+  document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('active')});
+  if(el) el.classList.add('active');
+  if(name==='dashboard') renderDash();
+  if(name==='projects')  renderProjects();
+  if(name==='myproj')    renderMyProj();
+  if(name==='report')    renderReportTab();
+  if(name==='admin')     renderAdmin();
+}
+
+function renderDash(){
+  var q=document.getElementById('dash-q').value;
+  var total=projects.length;
+  var done=projects.filter(function(p){return p.status==='completed'}).length;
+  var reported=projects.filter(function(p){return getLatestReport(p.id)}).length;
+  var totalBudget=projects.reduce(function(s,p){return s+Number(p.budget||0)},0);
+  document.getElementById('stat-row').innerHTML=
+    '<div class="stat-card"><div class="stat-label">โครงการทั้งหมด</div><div class="stat-value" style="color:var(--navy)">'+total+'</div><div class="stat-sub">โครงการ</div></div>'+
+    '<div class="stat-card"><div class="stat-label">รายงานผลแล้ว</div><div class="stat-value" style="color:var(--green)">'+reported+'</div><div class="stat-sub">โครงการ</div></div>'+
+    '<div class="stat-card"><div class="stat-label">สิ้นสุดแล้ว</div><div class="stat-value" style="color:var(--amber)">'+done+'</div><div class="stat-sub">โครงการ</div></div>'+
+    '<div class="stat-card"><div class="stat-label">งบประมาณรวม</div><div class="stat-value" style="font-size:18px;color:var(--navy)">'+fmt(totalBudget)+'</div><div class="stat-sub">บาท</div></div>';
+  var rows=projects.map(function(p){
+    var rs=q?reports.filter(function(r){return String(r.projectId)===String(p.id)&&r.quarter===q}):reports.filter(function(r){return String(r.projectId)===String(p.id)});
+    var lr=rs.length?rs[rs.length-1]:null;
+    var spent=lr?Number(lr.spent||0):0;
+    var bpct=p.budget?Math.round(spent/p.budget*100):0;
+    var bstat=bpct>100?'<span class="badge b-red">เกินงบ</span>':bpct>80?'<span class="badge b-amber">ใกล้เต็ม</span>':'<span class="badge b-green">ปกติ</span>';
+    var kpiText=(p.kpis||[]).slice(0,2).map(function(k){return'<div style="font-size:11px;margin-bottom:2px">'+String(k.text).substring(0,28)+'... <span style="color:var(--navy);font-weight:600">เป้า: '+k.target+'</span></div>'}).join('');
+    var lastQ=lr?'<span class="badge b-navy">'+lr.quarter+'</span>':'<span class="badge b-gray">ยังไม่รายงาน</span>';
+    return '<tr>'+
+      '<td><strong style="font-size:13px">'+String(p.name).substring(0,38)+'...</strong><br><span style="font-size:11px;color:var(--gray)">'+p.place+'</span></td>'+
+      '<td style="font-size:12px">'+p.ownerName+'</td>'+
+      '<td style="font-size:12px">'+fmt(p.budget)+' บาท<br>'+bstat+'</td>'+
+      '<td>'+kpiText+'</td>'+
+      '<td><span class="badge '+(p.status==='completed'?'b-green':'b-amber')+'">'+sl(p.status)+'</span></td>'+
+      '<td>'+lastQ+'</td></tr>';
+  }).join('');
+  document.getElementById('dash-tbody').innerHTML=rows||'<tr><td colspan="6" class="empty">ยังไม่มีโครงการ</td></tr>';
+}
+
+function renderProjects(){
+  var q=(document.getElementById('search').value||'').toLowerCase();
+  var st=document.getElementById('f-status').value;
+  var list=projects.filter(function(p){return(!q||String(p.name).toLowerCase().includes(q))&&(!st||p.status===st)});
+  var rows=list.map(function(p){
+    var kpiText=(p.kpis||[]).map(function(k){return'<div style="font-size:11px;margin-bottom:2px">'+k.text+' <span style="color:var(--navy);font-weight:600">('+k.target+')</span></div>'}).join('');
+    return '<tr>'+
+      '<td><strong>'+p.name+'</strong></td>'+
+      '<td style="font-size:12px">'+p.target+'</td>'+
+      '<td style="font-size:12px;white-space:nowrap">'+p.start+'<br>'+p.end+'</td>'+
+      '<td style="font-size:12px">'+fmt(p.budget)+' บาท</td>'+
+      '<td>'+kpiText+'</td>'+
+      '<td><span class="badge '+(p.status==='completed'?'b-green':'b-amber')+'">'+sl(p.status)+'</span></td>'+
+      '<td><button class="btn-sm be" onclick="viewReports(\''+p.id+'\')">ดูรายงาน</button></td></tr>';
+  }).join('');
+  document.getElementById('proj-tbody').innerHTML=rows||'<tr><td colspan="7" class="empty">ไม่พบโครงการ</td></tr>';
+}
+
+function renderMyProj(){
+  if(!cu) return;
+  var list=projects.filter(function(p){return String(p.ownerId)===String(cu.ownerId)});
+  var rows=list.map(function(p){
+    var kpiText=(p.kpis||[]).slice(0,2).map(function(k){return'<div style="font-size:11px">'+k.text+' ('+k.target+')</div>'}).join('');
+    return '<tr>'+
+      '<td><strong>'+p.name+'</strong></td>'+
+      '<td style="font-size:12px">'+fmt(p.budget)+' บาท</td>'+
+      '<td style="font-size:12px">'+p.start+' – '+p.end+'</td>'+
+      '<td>'+kpiText+'</td>'+
+      '<td><span class="badge '+(p.status==='completed'?'b-green':'b-amber')+'">'+sl(p.status)+'</span></td>'+
+      '<td style="display:flex;gap:5px;padding:8px 14px">'+
+        '<button class="btn-sm be" onclick="openProjModal(\''+p.id+'\')">แก้ไข</button>'+
+        '<button class="btn-sm bg2" onclick="openReportModal(\''+p.id+'\')">รายงานผล</button>'+
+      '</td></tr>';
+  }).join('');
+  document.getElementById('myproj-tbody').innerHTML=rows||'<tr><td colspan="6" class="empty">ยังไม่มีโครงการ — กด "+ เพิ่มโครงการใหม่"</td></tr>';
+}
+
+function renderReportTab(){
+  if(!cu) return;
+  var isAdmin=cu.role==='admin';
+  var list=isAdmin?projects:projects.filter(function(p){return String(p.ownerId)===String(cu.ownerId)});
+  var html=list.map(function(p){
+    var rs=reports.filter(function(r){return String(r.projectId)===String(p.id)});
+    var rRows=rs.map(function(r){
+      var spent=Number(r.spent||0);
+      var bpct=p.budget?Math.round(spent/p.budget*100):0;
+      var bBadge=bpct>100?'<span class="badge b-red">เกินงบ</span>':bpct>80?'<span class="badge b-amber">ใกล้เต็ม</span>':'<span class="badge b-green">ปกติ</span>';
+      return '<tr>'+
+        '<td><span class="badge b-navy">'+r.quarter+'</span></td>'+
+        '<td style="font-size:12px">'+fmt(spent)+' / '+fmt(p.budget)+' บาท '+bBadge+'</td>'+
+        '<td style="font-size:12px;max-width:160px">'+String(r.activityResult||'-').substring(0,50)+'...</td>'+
+        '<td style="font-size:12px">'+String(r.problems||'-').substring(0,40)+'</td>'+
+        '<td><button class="btn-sm be" onclick="viewReports(\''+p.id+'\',\''+r.quarter+'\')">รายละเอียด</button></td></tr>';
+    }).join('');
+    return '<div class="report-card">'+
+      '<div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px;gap:12px">'+
+        '<div><strong style="font-size:13px">'+p.name+'</strong><br><span style="font-size:11px;color:var(--gray)">งบ: '+fmt(p.budget)+' บาท | '+sl(p.status)+'</span></div>'+
+        '<button class="btn-sm bg2" onclick="openReportModal(\''+p.id+'\')">+ รายงานผล</button>'+
+      '</div>'+
+      (rs.length
+        ?'<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px">'+
+          '<thead><tr style="background:#f9fafb">'+
+          '<th style="padding:7px 12px;text-align:left;border-bottom:1px solid rgba(0,0,0,.08);white-space:nowrap">ไตรมาส</th>'+
+          '<th style="padding:7px 12px;text-align:left;border-bottom:1px solid rgba(0,0,0,.08)">งบที่ใช้</th>'+
+          '<th style="padding:7px 12px;text-align:left;border-bottom:1px solid rgba(0,0,0,.08)">สรุปกิจกรรม</th>'+
+          '<th style="padding:7px 12px;text-align:left;border-bottom:1px solid rgba(0,0,0,.08)">ปัญหา</th>'+
+          '<th style="padding:7px 12px;border-bottom:1px solid rgba(0,0,0,.08)"></th>'+
+          '</tr></thead><tbody>'+rRows+'</tbody></table></div>'
+        :'<div style="font-size:12px;color:var(--gray);text-align:center;padding:14px;background:#f9fafb;border-radius:6px">ยังไม่มีการรายงานผล</div>')+
+    '</div>';
+  }).join('');
+  document.getElementById('report-list').innerHTML=html||'<div class="empty">ไม่มีโครงการ</div>';
+}
+
+function renderAdmin(){
+  var rows=projects.map(function(p){
+    return '<tr>'+
+      '<td><strong>'+String(p.name).substring(0,40)+'...</strong></td>'+
+      '<td style="font-size:12px">'+p.ownerName+'<br><span style="color:var(--gray)">'+p.ownerDept+'</span></td>'+
+      '<td style="font-size:12px">'+fmt(p.budget)+' บาท</td>'+
+      '<td><span class="badge '+(p.status==='completed'?'b-green':'b-amber')+'">'+sl(p.status)+'</span></td>'+
+      '<td style="display:flex;gap:5px;padding:8px 14px">'+
+        '<button class="btn-sm be" onclick="openProjModal(\''+p.id+'\')">แก้ไข</button>'+
+        '<button class="btn-sm bo" onclick="openReportModal(\''+p.id+'\')">รายงานผล</button>'+
+        '<button class="btn-sm br" onclick="delProj(\''+p.id+'\')">ลบ</button>'+
+      '</td></tr>';
+  }).join('');
+  document.getElementById('admin-tbody').innerHTML=rows||'<tr><td colspan="5" class="empty">ยังไม่มีโครงการ</td></tr>';
+}
+
+function openProjModal(id){
+  editProjId=id||null;
+  var p=id?projects.find(function(x){return String(x.id)===String(id)}):null;
+  document.getElementById('mp-title').textContent=id?'แก้ไขข้อมูลโครงการ':'เพิ่มโครงการใหม่';
+  document.getElementById('p-name').value=p?p.name:'';
+  document.getElementById('p-reason').value=p?p.reason:'';
+  document.getElementById('p-obj').value=p?p.objective:'';
+  document.getElementById('p-target').value=p?p.target:'';
+  document.getElementById('p-start').value=p?p.start:'';
+  document.getElementById('p-end').value=p?p.end:'';
+  document.getElementById('p-place').value=p?p.place:'';
+  document.getElementById('p-activities').value=p?p.activities:'';
+  document.getElementById('p-budget').value=p?p.budget:'';
+  document.getElementById('p-budget-src').value=p?p.budgetSrc:'';
+  document.getElementById('p-owner-name').value=p?p.ownerName:(cu?cu.name:'');
+  document.getElementById('p-owner-pos').value=p?p.ownerPos:'';
+  document.getElementById('p-owner-dept').value=p?p.ownerDept:'';
+  document.getElementById('p-status').value=p?p.status:'ongoing';
+  var tbody=document.getElementById('kpi-rows');
+  tbody.innerHTML='';
+  var kpis=p&&p.kpis&&p.kpis.length?p.kpis:[{text:'',type:'เชิงปริมาณ',target:'',note:''},{text:'',type:'เชิงคุณภาพ',target:'',note:''}];
+  kpis.forEach(function(k){addKpiRowData(k)});
+  document.getElementById('m-proj').classList.remove('hidden');
+}
+
+function addKpiRow(){addKpiRowData({text:'',type:'เชิงปริมาณ',target:'',note:''})}
+function addKpiRowData(k){
+  var tr=document.createElement('tr');
+  tr.innerHTML=
+    '<td><input type="text" value="'+(k.text||'')+'" placeholder="ระบุตัวชี้วัด"></td>'+
+    '<td><select><option'+(k.type==='เชิงปริมาณ'?' selected':'')+'>เชิงปริมาณ</option><option'+(k.type==='เชิงคุณภาพ'?' selected':'')+'>เชิงคุณภาพ</option></select></td>'+
+    '<td><input type="text" value="'+(k.target||'')+'" placeholder="ค่าเป้าหมาย"></td>'+
+    '<td><input type="text" value="'+(k.note||'')+'" placeholder="หมายเหตุ"></td>';
+  document.getElementById('kpi-rows').appendChild(tr);
+}
+
+function saveProj(){
+  var name=document.getElementById('p-name').value.trim();
+  if(!name){alert('กรุณาระบุชื่อโครงการ');return}
+  var kpiRows=document.getElementById('kpi-rows').querySelectorAll('tr');
+  var kpis=Array.from(kpiRows).map(function(tr){
+    var ins=tr.querySelectorAll('input,select');
+    return{text:ins[0].value,type:ins[1].value,target:ins[2].value,note:ins[3].value};
+  }).filter(function(k){return k.text});
+  var data={
+    id:editProjId,name:name,reason:document.getElementById('p-reason').value,
+    objective:document.getElementById('p-obj').value,target:document.getElementById('p-target').value,
+    start:document.getElementById('p-start').value,end:document.getElementById('p-end').value,
+    place:document.getElementById('p-place').value,activities:document.getElementById('p-activities').value,
+    kpis:kpis,budget:Number(document.getElementById('p-budget').value)||0,
+    budgetSrc:document.getElementById('p-budget-src').value,
+    ownerName:document.getElementById('p-owner-name').value,
+    ownerPos:document.getElementById('p-owner-pos').value,
+    ownerDept:document.getElementById('p-owner-dept').value,
+    status:document.getElementById('p-status').value,
+    ownerId:cu?cu.ownerId:'owner1'
+  };
+  document.getElementById('p-saving').classList.remove('hidden');
+  api({action:'saveProject',data:data}).then(function(r){
+    document.getElementById('p-saving').classList.add('hidden');
+    if(r.success){closeM('m-proj');loadAll();}
+    else alert('บันทึกไม่สำเร็จ: '+(r.error||''));
+  }).catch(function(){
+    document.getElementById('p-saving').classList.add('hidden');
+    alert('เชื่อมต่อไม่ได้ กรุณาลองใหม่');
+  });
+}
+
+function delProj(id){
+  if(!confirm('ยืนยันการลบโครงการ?')) return;
+  api({action:'deleteProject',id:id}).then(function(r){
+    if(r.success) loadAll(); else alert('ลบไม่สำเร็จ');
+  });
+}
+
+function openReportModal(pid){
+  reportProjId=pid;
+  var p=projects.find(function(x){return String(x.id)===String(pid)});
+  if(!p) return;
+  document.getElementById('mr-title').textContent='รายงานผล: '+String(p.name).substring(0,30)+'...';
+  document.getElementById('mr-proj-info').innerHTML=
+    '<strong>'+p.name+'</strong><br>งบประมาณ: '+fmt(p.budget)+' บาท ('+p.budgetSrc+') | '+p.start+' – '+p.end;
+  var tbody=document.getElementById('r-kpi-rows');
+  tbody.innerHTML=(p.kpis||[]).map(function(k){
+    return '<tr>'+
+      '<td>'+k.text+'<br><span style="font-size:10px;color:var(--gray)">'+k.type+'</span></td>'+
+      '<td><strong>'+k.target+'</strong></td>'+
+      '<td><input type="text" placeholder="ระบุผลที่ได้จริง"></td>'+
+      '<td><select><option value="on_track">เป็นไปตามเป้า</option><option value="below">ต่ำกว่าเป้า</option><option value="above">สูงกว่าเป้า</option><option value="na">ยังไม่ดำเนินการ</option></select></td></tr>';
+  }).join('');
+  ['r-activity-result','r-photos','r-problems','r-suggest1','r-budget-prob','r-suggest2','r-benefit','r-pos','r-tel'].forEach(function(id){document.getElementById(id).value=''});
+  document.getElementById('r-spent').value='';
+  document.getElementById('r-reporter').value=cu?cu.name:'';
+  document.getElementById('r-budget-status').textContent='กรอกจำนวนเงินเพื่อตรวจสอบ';
+  document.getElementById('r-budget-status').style.color='var(--gray)';
+  document.getElementById('m-report').classList.remove('hidden');
+}
+
+function checkBudget(){
+  var p=projects.find(function(x){return String(x.id)===String(reportProjId)});
+  if(!p) return;
+  var spent=Number(document.getElementById('r-spent').value)||0;
+  var pct=p.budget?Math.round(spent/p.budget*100):0;
+  var el=document.getElementById('r-budget-status');
+  if(pct>100){el.textContent='เกินงบประมาณ ('+pct+'%)';el.style.color='var(--red)';}
+  else if(pct>80){el.textContent='ใกล้เต็มงบ ('+pct+'%)';el.style.color='var(--amber)';}
+  else{el.textContent='เป็นไปตามแผน ('+pct+'%)';el.style.color='var(--green)';}
+}
+
+function saveReport(){
+  var p=projects.find(function(x){return String(x.id)===String(reportProjId)});
+  if(!p) return;
+  var kpiRows=document.getElementById('r-kpi-rows').querySelectorAll('tr');
+  var kpiResults=Array.from(kpiRows).map(function(tr,i){
+    var ins=tr.querySelectorAll('input,select');
+    return{
+      text:p.kpis[i]?p.kpis[i].text:'',
+      target:p.kpis[i]?p.kpis[i].target:'',
+      result:ins[0].value,status:ins[1].value
+    };
+  });
+  var spent=Number(document.getElementById('r-spent').value)||0;
+  var bpct=p.budget?Math.round(spent/p.budget*100):0;
+  var bStatus=bpct>100?'over':bpct>80?'near':'on_track';
+  var data={
+    projectId:reportProjId,
+    quarter:document.getElementById('r-quarter').value,
+    year:'2569',
+    activityResult:document.getElementById('r-activity-result').value,
+    kpiResults:kpiResults,
+    photos:document.getElementById('r-photos').value,
+    spent:spent,budgetStatus:bStatus,
+    problems:document.getElementById('r-problems').value,
+    suggest1:document.getElementById('r-suggest1').value,
+    budgetProb:document.getElementById('r-budget-prob').value,
+    suggest2:document.getElementById('r-suggest2').value,
+    benefit:document.getElementById('r-benefit').value,
+    reporter:document.getElementById('r-reporter').value,
+    reporterPos:document.getElementById('r-pos').value,
+    reporterTel:document.getElementById('r-tel').value
+  };
+  document.getElementById('r-saving').classList.remove('hidden');
+  api({action:'saveReport',data:data}).then(function(r){
+    document.getElementById('r-saving').classList.add('hidden');
+    if(r.success){closeM('m-report');loadAll();alert('บันทึกรายงานผลสำเร็จ!');}
+    else alert('บันทึกไม่สำเร็จ: '+(r.error||''));
+  }).catch(function(){
+    document.getElementById('r-saving').classList.add('hidden');
+    alert('เชื่อมต่อไม่ได้ กรุณาลองใหม่');
+  });
+}
+
+function viewReports(pid,quarter){
+  var p=projects.find(function(x){return String(x.id)===String(pid)});
+  var rs=quarter
+    ?reports.filter(function(r){return String(r.projectId)===String(pid)&&r.quarter===quarter})
+    :reports.filter(function(r){return String(r.projectId)===String(pid)});
+  document.getElementById('mv-title').textContent=String(p.name).substring(0,35)+'...';
+  var statusMap={
+    on_track:'<span class="badge b-green">เป็นไปตามเป้า</span>',
+    below:'<span class="badge b-red">ต่ำกว่าเป้า</span>',
+    above:'<span class="badge b-blue">สูงกว่าเป้า</span>',
+    na:'<span class="badge b-gray">ยังไม่ดำเนินการ</span>'
+  };
+  var html='<div style="background:#f0f4ff;border-radius:8px;padding:12px;margin-bottom:14px;font-size:12px;border-left:3px solid var(--navy)">'+
+    '<strong>'+p.name+'</strong><br>งบประมาณ: '+fmt(p.budget)+' บาท | '+p.start+' – '+p.end+'</div>';
+  if(!rs.length){html+='<div class="empty">ยังไม่มีการรายงานผล</div>';}
+  rs.forEach(function(r){
+    var spent=Number(r.spent||0);
+    var bpct=p.budget?Math.round(spent/p.budget*100):0;
+    var bBadge=bpct>100?'<span class="badge b-red">เกินงบ ('+bpct+'%)</span>':bpct>80?'<span class="badge b-amber">ใกล้เต็ม ('+bpct+'%)</span>':'<span class="badge b-green">ปกติ ('+bpct+'%)</span>';
+    var kpiRows=(r.kpiResults||[]).map(function(k,i){
+      var kpiInfo=p.kpis&&p.kpis[i]?p.kpis[i]:{text:k.text||'',target:k.target||''};
+      return '<tr><td>'+kpiInfo.text+'</td><td>'+kpiInfo.target+'</td><td>'+k.result+'</td><td>'+(statusMap[k.status]||k.status)+'</td></tr>';
+    }).join('');
+    html+='<div style="border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:12px">'+
+      '<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px"><span class="badge b-navy">'+r.quarter+'</span><span style="font-size:12px;color:var(--gray)">รายงาน: '+r.reportedAt+'</span></div>'+
+      '<div class="sdiv">ผลการดำเนินงานของกิจกรรม</div>'+
+      '<div style="font-size:12px;white-space:pre-line;line-height:1.6">'+r.activityResult+'</div>'+
+      '<div class="sdiv">ผลการดำเนินงานตามตัวชี้วัด</div>'+
+      '<table class="kpi-tbl"><thead><tr><th>ตัวชี้วัด</th><th>ค่าเป้าหมาย</th><th>ผลจริง</th><th>สถานะ</th></tr></thead><tbody>'+kpiRows+'</tbody></table>'+
+      '<div class="sdiv">งบประมาณ</div>'+
+      '<div style="font-size:12px">ใช้ไปแล้ว: <strong>'+fmt(spent)+'</strong> / '+fmt(p.budget)+' บาท '+bBadge+'</div>'+
+      (r.problems?'<div class="sdiv">ปัญหา/อุปสรรค</div><div style="font-size:12px;white-space:pre-line">'+r.problems+'</div>':'')+
+      (r.suggest1?'<div class="sdiv">ข้อเสนอแนะ</div><div style="font-size:12px">'+r.suggest1+'</div>':'')+
+      (r.benefit?'<div class="sdiv">ประโยชน์ที่สาธารณชนได้รับ</div><div style="font-size:12px">'+r.benefit+'</div>':'')+
+    '</div>';
+  });
+  document.getElementById('mv-body').innerHTML=html;
+  document.getElementById('m-view').classList.remove('hidden');
+}
+
+function closeM(id){document.getElementById(id).classList.add('hidden')}
+</script>
+</body>
+</html>
